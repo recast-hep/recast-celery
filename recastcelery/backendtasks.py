@@ -28,8 +28,6 @@ def generic_upload_results(resultdir,user,host,port,base,wflowconfigname):
 
     execute(fabric_command,hosts = '{user}@{host}:{port}'.format(user = user,host = host,port = port))
 
-
-
 log = logging.getLogger('RECAST')
 
 def download_file(url,download_dir):
@@ -43,7 +41,6 @@ def download_file(url,download_dir):
                 f.write(chunk)
                 f.flush()
     return download_path
-
 
 def prepare_job_fromURL(jobguid,input_url):
     workdir = 'workdirs/{}'.format(jobguid)
@@ -110,7 +107,6 @@ def getresultlist(ctx):
 
 
 def generic_onsuccess(ctx):
-
     jobguid = ctx['jobguid']
     wflowconfigname = ctx['wflowconfigname']
     shipout_base = ctx['shipout_base']
@@ -183,14 +179,9 @@ def cleanup(ctx):
         raise RuntimeError('Error in cleanup, ')
     assert not os.path.isdir(workdir)
 
-@shared_task
-def run_analysis(setupfunc,onsuccess,teardownfunc,ctx):
-    run_analysis_standalone(setupfunc,onsuccess,teardownfunc,ctx)
-
 def run_analysis_standalone(setupfunc,onsuccess,teardownfunc,ctx,redislogging = True):
     try:
         jobguid = ctx['jobguid']
-
         if redislogging:
             logger, handler = setupLogging(jobguid)
         log.info('running analysis on worker: %s %s',socket.gethostname(),os.environ.get('RECAST_DOCKERHOST',''))
@@ -218,3 +209,7 @@ def run_analysis_standalone(setupfunc,onsuccess,teardownfunc,ctx,redislogging = 
         teardownfunc(ctx)
         if redislogging:
             logger.removeHandler(handler)
+
+@shared_task
+def run_analysis(setupfunc,onsuccess,teardownfunc,ctx):
+    run_analysis_standalone(setupfunc,onsuccess,teardownfunc,ctx)
