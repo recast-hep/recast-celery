@@ -73,6 +73,7 @@ def isolate_results(jobguid,resultlist):
     resultdir = '{}/results'.format(workdir)
 
     if(os.path.exists(resultdir)):
+        log.warning('resutl directory %s exists?!?',resultdir)
         shutil.rmtree(resultdir)
 
     os.makedirs(resultdir)
@@ -82,20 +83,20 @@ def isolate_results(jobguid,resultlist):
         if not globresult:
             log.warning('no matches for glob %s',resultpath)
         for thing in globresult:
-            if os.path.isfile(thing):
-                shutil.copyfile(thing,'{}/{}'.format(resultdir,os.path.basename(thing)))
-            elif os.path.isdir(thing):
-                shutil.copytree(thing,'{}/{}'.format(resultdir,os.path.basename(thing)))
-            else:
-                log.error('result %s (path: %s, glob element: %s)  does not exist or is neither file nor folder!',
-                          result,resultpath,thing)
-                raise RuntimeError
+            relpath = thing.replace(os.path.abspath(workdir),'')
+            inresultpath = '{}/{}'.format(resultdir,relpath)
+            dirname = os.path.dirname(inresultpath)
+            if not os.path.exists(dirname):
+                os.makedirs(dirname)
+            log.debug('got globmatch %s',relpath)
+            log.debug('move to file %s',inresultpath)
+            shutil.move(thing,inresultpath)
     return resultdir
 
 
 def getresultlist(ctx):
     """
-    result list can either be provided as module:attricbut nullary function
+    result list can either be provided as module:attribute nullary function
     under the key 'results' or as an actual list of strings under key 'resultlist'
     """
     if 'results' in ctx:
