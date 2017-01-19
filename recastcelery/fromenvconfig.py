@@ -13,7 +13,7 @@ worker_prefetch_multiplier = 1
 
 task_serializer = 'pickle'
 
-broker_url = 'redis://{}'.format(redis_host)
+broker_url = 'redis://{}:{}/{}'.format(redis_host,redis_port,redis_db)
 
 # We don't want results (including Task States) to expire
 result_expires = None
