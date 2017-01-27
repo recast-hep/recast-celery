@@ -17,17 +17,24 @@ def get_redis():
 def jobguid_message_key(jobguid):
     return 'recast:{}:msgs'.format(jobguid)
 
-def socketlog(jobguid,msg):
+
+def store_and_emit(jobguid,msg_data):
     red = get_redis()
     io  = emitter.Emitter({'client': red})
-
-    msg_data = {'date':datetime.now().strftime('%Y-%m-%d %X'),'msg':msg}
-
-    #store msg in redis
+    #store
     msglist = jobguid_message_key(jobguid)
     red.rpush(msglist,json.dumps(msg_data))
-
+    #emit
     io.Of('/monitor').In(str(jobguid)).Emit('room_msg',msg_data)
+
+
+def generic_message(jobguid,msgtype,jsonable):
+    msg_data = {'type':msgtype,'date':datetime.now().strftime('%Y-%m-%d %X'),'data':jsonable}
+    store_and_emit(jobguid,msg_data)
+
+def socketlog(jobguid,msg):
+    msg_data = {'type':'log_message','date':datetime.now().strftime('%Y-%m-%d %X'),'msg':msg}
+    store_and_emit(jobguid,msg_data)
 
 class RecastLogger(logging.StreamHandler):
     def __init__(self,jobid):
