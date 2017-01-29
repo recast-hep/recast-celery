@@ -23,7 +23,7 @@ def generic_upload_results(resultdir,user,host,port,base,wflowconfigname):
     def fabric_command():
         run('mkdir -p {}'.format(base))
         run('(test -d {base}/{wflowconfigname} && rm -rf {base}/{wflowconfigname}) || echo "not present yet" '.format(base = base,wflowconfigname = wflowconfigname))
-        run('mkdir {base}/{wflowconfigname}'.format(base = base, wflowconfigname = wflowconfigname))
+        run('mkdir -p {base}/{wflowconfigname}'.format(base = base, wflowconfigname = wflowconfigname))
         put('{}/*'.format(resultdir),'{base}/{wflowconfigname}'.format(base = base, wflowconfigname = wflowconfigname))
 
     execute(fabric_command,hosts = '{user}@{host}:{port}'.format(user = user,host = host,port = port))
