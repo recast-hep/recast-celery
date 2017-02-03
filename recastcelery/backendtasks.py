@@ -47,7 +47,7 @@ def prepare_job_fromURL(jobguid,input_url):
 
     if not input_url:
         log.warning('No input archive specified, skipping download')
-        continue
+        return
 
     filepath = download_file(input_url,workdir)
     log.info('downloaded done (at: %s)',filepath)
