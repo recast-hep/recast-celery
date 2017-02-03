@@ -8,12 +8,13 @@ import glob2
 import socket
 
 from recastcelery.messaging import setupLogging
+from celery import shared_task
 
 from fabric.api import env
 from fabric.operations import run, put
 from fabric.tasks import execute
 
-from celery import shared_task
+log = logging.getLogger('RECAST')
 
 env.use_ssh_config = True
 
@@ -28,7 +29,6 @@ def generic_upload_results(resultdir,user,host,port,base,wflowconfigname):
 
     execute(fabric_command,hosts = '{user}@{host}:{port}'.format(user = user,host = host,port = port))
 
-log = logging.getLogger('RECAST')
 
 def download_file(url,download_dir):
     local_filename = url.split('/')[-1]
@@ -44,6 +44,10 @@ def download_file(url,download_dir):
 
 def prepare_job_fromURL(jobguid,input_url):
     workdir = 'workdirs/{}'.format(jobguid)
+
+    if not input_url:
+        log.warning('No input archive specified, skipping download')
+        continue
 
     filepath = download_file(input_url,workdir)
     log.info('downloaded done (at: %s)',filepath)
