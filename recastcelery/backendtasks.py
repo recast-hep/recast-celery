@@ -17,6 +17,7 @@ from fabric.tasks import execute
 log = logging.getLogger('RECAST')
 
 env.use_ssh_config = True
+env.disable_known_hosts = True if 'RECAST_UPLOAD_DISABLE_KNOWN_HOST' in os.environ else False
 
 def generic_upload_results(resultdir, upload_spec):
     #make sure the directory for this point is present
@@ -29,7 +30,7 @@ def generic_upload_results(resultdir, upload_spec):
     def fabric_command():
         run('mkdir -p {}'.format(base))
         run('(test -d {remotelocation} && rm -rf {remotelocation} || echo "not present yet" '.format(remotelocation = remotelocation))
-        run('mkdir -p {remotelocation}'.format(base = base, wflowconfigname = wflowconfigname))
+        run('mkdir -p {remotelocation}'.format(remotelocation = remotelocation))
         put('{}/*'.format(resultdir),remotelocation)
 
     execute(fabric_command,hosts = '{user}@{host}:{port}'.format(user = user, host = host, port = port))
