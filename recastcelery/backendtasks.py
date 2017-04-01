@@ -18,16 +18,21 @@ log = logging.getLogger('RECAST')
 
 env.use_ssh_config = True
 
-def generic_upload_results(resultdir,user,host,port,base,wflowconfigname):
+def generic_upload_results(resultdir, upload_spec):
     #make sure the directory for this point is present
+
+    user = upload_spec['user']
+    host = upload_spec['host']
+    port = upload_spec['port']
+    remotelocation = upload_spec['location']
 
     def fabric_command():
         run('mkdir -p {}'.format(base))
-        run('(test -d {base}/{wflowconfigname} && rm -rf {base}/{wflowconfigname}) || echo "not present yet" '.format(base = base,wflowconfigname = wflowconfigname))
-        run('mkdir -p {base}/{wflowconfigname}'.format(base = base, wflowconfigname = wflowconfigname))
-        put('{}/*'.format(resultdir),'{base}/{wflowconfigname}'.format(base = base, wflowconfigname = wflowconfigname))
+        run('(test -d {remotelocation} && rm -rf {remotelocation} || echo "not present yet" '.format(remotelocation = remotelocation))
+        run('mkdir -p {remotelocation}'.format(base = base, wflowconfigname = wflowconfigname))
+        put('{}/*'.format(resultdir),remotelocation)
 
-    execute(fabric_command,hosts = '{user}@{host}:{port}'.format(user = user,host = host,port = port))
+    execute(fabric_command,hosts = '{user}@{host}:{port}'.format(user = user, host = host, port = port))
 
 
 def download_file(url,download_dir):
@@ -113,19 +118,16 @@ def getresultlist(ctx):
 def generic_onsuccess(ctx):
     jobguid = ctx['jobguid']
     wflowconfigname = ctx['wflowconfigname']
-    shipout_base = ctx['shipout_base']
 
     log.info('success for job %s, gathering results... ',jobguid)
 
     resultdir = isolate_results(jobguid,getresultlist(ctx))
 
-    log.info('uploading results to {}:{}'.format(os.environ['RECAST_SHIP_HOST'],shipout_base))
-    generic_upload_results(resultdir,
-                           os.environ['RECAST_SHIP_USER'],
-                           os.environ['RECAST_SHIP_HOST'],
-                           os.environ['RECAST_SHIP_PORT'],
-                           shipout_base,
-                           wflowconfigname)
+
+    upload_spec = ctx['shipout_spec']
+    log.info('uploading results to {}:{}'.format(upload_spec['host'],upload_spec['location']))
+
+    generic_upload_results(resultdir,upload_spec)
 
     log.info('done with uploading results')
 
