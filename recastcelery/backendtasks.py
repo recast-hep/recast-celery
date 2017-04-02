@@ -28,7 +28,7 @@ def generic_upload_results(resultdir, upload_spec):
     remotelocation = upload_spec['location']
 
     def fabric_command():
-        run('(test -d {remotelocation} && rm -rf {remotelocation} || echo "not present yet" '.format(remotelocation = remotelocation))
+        run('(test -d {remotelocation} && rm -rf {remotelocation}) || echo "not present yet" '.format(remotelocation = remotelocation))
         run('mkdir -p {remotelocation}'.format(remotelocation = remotelocation))
         put('{}/*'.format(resultdir),remotelocation)
 
