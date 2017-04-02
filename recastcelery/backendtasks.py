@@ -9,7 +9,6 @@ import socket
 
 from recastcelery.messaging import setupLogging
 from celery import shared_task
-
 from fabric.api import env
 from fabric.operations import run, put
 from fabric.tasks import execute
@@ -218,4 +217,5 @@ def run_analysis_standalone(setupfunc,onsuccess,teardownfunc,ctx,redislogging = 
 
 @shared_task
 def run_analysis(setupfunc,onsuccess,teardownfunc,ctx):
+    ctx['jobguid'] = run_analysis.request.id
     run_analysis_standalone(setupfunc,onsuccess,teardownfunc,ctx)
