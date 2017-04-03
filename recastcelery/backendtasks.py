@@ -185,8 +185,8 @@ def cleanup(ctx):
     assert not os.path.isdir(workdir)
 
 def run_analysis_standalone(setupfunc,onsuccess,teardownfunc,ctx,redislogging = True):
+    jobguid = ctx['jobguid']
     try:
-        jobguid = ctx['jobguid']
         if redislogging:
             logger, handler = setupLogging(jobguid)
         log.info('running analysis on worker: %s %s',socket.gethostname(),os.environ.get('RECAST_DOCKERHOST',''))
