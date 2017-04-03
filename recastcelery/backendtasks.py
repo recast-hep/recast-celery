@@ -217,5 +217,6 @@ def run_analysis_standalone(setupfunc,onsuccess,teardownfunc,ctx,redislogging = 
 
 @shared_task
 def run_analysis(setupfunc,onsuccess,teardownfunc,ctx):
+    log.info('setting jobguid to: %s', run_analysis.request.id)
     ctx['jobguid'] = run_analysis.request.id
     run_analysis_standalone(setupfunc,onsuccess,teardownfunc,ctx)
