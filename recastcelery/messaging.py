@@ -48,8 +48,8 @@ class RedisHandler(logging.StreamHandler):
     def __init__(self,jobguid):
         self.red = redis.StrictRedis(
             host = os.environ.get('RECAST_CELERY_REDIS_HOST','localhost'),
-            port = os.environ.get('RECAST_CELERY_REDIS_DB',6379),
-            db = os.environ.get('RECAST_CELERY_REDIS_PORT',0)
+            db = os.environ.get('RECAST_CELERY_REDIS_DB',0),
+            port = os.environ.get('RECAST_CELERY_REDIS_PORT',6379)
         )
         self.jobguid = jobguid
         logging.StreamHandler.__init__(self)
