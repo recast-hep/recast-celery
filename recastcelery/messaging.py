@@ -63,7 +63,7 @@ class RedisHandler(logging.StreamHandler):
             'date':datetime.now().strftime('%Y-%m-%d %X'),
             'type':'log_message'
         }
-        self.red.publish(os.environ.get('PACKTIVITY_LOGGER_CHANNEL','logstash:in'),json.dumps(data))
+        self.red.publish(os.environ.get('WFLOW_LOGGER_CHANNEL','logstash:in'),json.dumps(data))
 
 def get_stored_messages(jobguid):
     msglist = jobguid_message_key(jobguid)
