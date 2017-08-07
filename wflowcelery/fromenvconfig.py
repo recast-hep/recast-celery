@@ -1,9 +1,9 @@
 import os
 result_backend = 'redis'
-redis_host = os.environ['RECAST_CELERY_REDIS_HOST']
-redis_port = os.environ['RECAST_CELERY_REDIS_PORT']
-redis_db = os.environ['RECAST_CELERY_REDIS_DB']
-imports = ('recastcelery.backendtasks',)
+redis_host = os.environ.get('WFLOW_CELERY_REDIS_HOST','')
+redis_port = os.environ.get('WFLOW_CELERY_REDIS_PORT','')
+redis_db = os.environ.get('WFLOW_CELERY_REDIS_DB','')
+imports = ('wflowcelery.backendtasks',)
 
 
 task_track_started = True
@@ -14,7 +14,11 @@ worker_prefetch_multiplier = 1
 task_serializer = 'pickle'
 accept_content = ['json','pickle']
 
-broker_url = 'redis://{}:{}/{}'.format(redis_host,redis_port,redis_db)
+broker_url = 'redis://{}:{}/{}'.format(
+	redis_host,
+	redis_port,
+	redis_db
+)
 
 # We don't want results (including Task States) to expire
 result_expires = None
@@ -26,4 +30,4 @@ result_expires = None
 # to have some sensible behavior in case of a failing worker. We'll set this to 24h
 # more info: http://docs.celeryproject.org/en/latest/getting-started/brokers/redis.html
 # this was a problem initially when we thought long EWK tasks being re-executed multiple times...
-broker_transport_options = {'visibility_timeout':os.environ.get('RECAST_CELERY_VISIBILITY_TIMEOUT',86400)}
+broker_transport_options = {'visibility_timeout':os.environ.get('WFLOW_CELERY_VISIBILITY_TIMEOUT',86400)}

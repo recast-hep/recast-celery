@@ -7,16 +7,17 @@ import requests
 import glob2
 import socket
 
-from recastcelery.messaging import setupLogging
+from .messaging import setupLogging
 from celery import shared_task
 from fabric.api import env
 from fabric.operations import run, put
 from fabric.tasks import execute
 
-log = logging.getLogger('RECAST')
+log = logging.getLogger('WFLOWSERVICE')
 
 env.use_ssh_config = True
-env.disable_known_hosts = True if 'RECAST_UPLOAD_DISABLE_KNOWN_HOST' in os.environ else False
+env.disable_known_hosts = True if 'WFLOW_UPLOAD_DISABLE_KNOWN_HOST' in os.environ else False
+env.key_filename = os.environ['WFLOW_UPLOAD_IDENTITY_FILE']
 
 def generic_upload_results(resultdir, upload_spec):
     #make sure the directory for this point is present
@@ -116,12 +117,9 @@ def getresultlist(ctx):
 
 def generic_onsuccess(ctx):
     jobguid = ctx['jobguid']
-    wflowconfigname = ctx['wflowconfigname']
 
     log.info('success for job %s, gathering results... ',jobguid)
-
     resultdir = isolate_results(jobguid,getresultlist(ctx))
-
 
     upload_spec = ctx['shipout_spec']
     log.info('uploading results to {}:{}'.format(upload_spec['host'],upload_spec['location']))
@@ -169,7 +167,7 @@ def cleanup(ctx):
     workdir = 'workdirs/{}'.format(ctx['jobguid'])
     log.info('cleaning up workdir: %s',workdir)
 
-    quarantine_base = os.environ.get('RECAST_QUARANTINE_DIR','/tmp/recast_quarantine')
+    quarantine_base = os.environ.get('WFLOW_QUARANTINE_DIR','/tmp/wflow_quarantine')
     rescuedir = '{}/{}'.format(quarantine_base,ctx['jobguid'])
     log.info('log files will be in %s',rescuedir)
     try:
@@ -189,7 +187,7 @@ def run_analysis_standalone(setupfunc,onsuccess,teardownfunc,ctx,redislogging = 
     try:
         if redislogging:
             logger, handler = setupLogging(jobguid)
-        log.info('running analysis on worker: %s %s',socket.gethostname(),os.environ.get('RECAST_DOCKERHOST',''))
+        log.info('running analysis on worker: %s %s',socket.gethostname(),os.environ.get('WFLOW_DOCKERHOST',''))
 
         setupfunc(ctx)
         try:
