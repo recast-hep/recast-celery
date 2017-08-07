@@ -13,7 +13,7 @@ from fabric.api import env
 from fabric.operations import run, put
 from fabric.tasks import execute
 
-log = logging.getLogger('WFLOWSERVICE')
+log = logging.getLogger('WFLOWSERVICELOG')
 
 env.use_ssh_config = True
 env.disable_known_hosts = True if 'WFLOW_UPLOAD_DISABLE_KNOWN_HOST' in os.environ else False
