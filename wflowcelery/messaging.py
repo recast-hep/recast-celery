@@ -1,5 +1,4 @@
 from datetime import datetime
-import emitter
 import logging
 import json
 import redis

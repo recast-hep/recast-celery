@@ -17,7 +17,7 @@ log = logging.getLogger('WFLOWSERVICELOG')
 
 env.use_ssh_config = True
 env.disable_known_hosts = True if 'WFLOW_UPLOAD_DISABLE_KNOWN_HOST' in os.environ else False
-env.key_filename = os.environ['WFLOW_UPLOAD_IDENTITY_FILE']
+env.key_filename = os.environ.get('WFLOW_UPLOAD_IDENTITY_FILE',None)
 
 def generic_upload_results(resultdir, upload_spec):
     #make sure the directory for this point is present
@@ -161,7 +161,6 @@ def delete_all_but_log(directory, cutoff_size_MB = 50):
                     continue
                 log.warning('size of log-like file %s is too large (%s MB), will be deleted',fullpath,size_MB)
             os.remove(fullpath)
-
 
 def cleanup(ctx):
     workdir = 'workdirs/{}'.format(ctx['jobguid'])
