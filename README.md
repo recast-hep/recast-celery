@@ -1,4 +1,3 @@
-# recast-celery
-the celery backend that glues control-center/CLI to a celery-based backend
+# wflow-celery
 
-introduce for better decoupling of cc-specific developments in recast-backend and interface between processing backend (here: celery) and CC/CLI clients
+a celery backend that glues calls workflow engines to execute workflows. originally developed for RECAST.
