@@ -36,15 +36,19 @@ def generic_upload_results(resultdir, upload_spec):
     execute(fabric_command,hosts = '{user}@{host}:{port}'.format(user = user, host = host, port = port))
 
 
-def download_file(url,download_dir):
+def download_file(url,auth, download_dir):
     local_filename = url.split('/')[-1]
     # NOTE the stream=True parameter
 
-    headers = {'Authorization': 'Bearer {}'.format(os.environ['WFLOW_DOWNLOAD_TOKEN'])}
+    headers = {}
+    if auth:
+        headers['Authorization'] = 'Bearer {}'.format(os.environ['WFLOW_DOWNLOAD_TOKEN'])
 
     log.info('start file download from  %s', url)
 
-    r = requests.get(url, stream=True, headers = headers, verify = yaml.load(os.environ['WFLOW_DOWNLOAD_VERIFY_SSL']))
+    verify = yaml.load(os.environ['WFLOW_DOWNLOAD_VERIFY_SSL'])
+
+    r = requests.get(url, stream=True, headers = headers, verify = verify)
     download_path = '{}/{}'.format(download_dir,local_filename)
     with open(download_path, 'wb') as f:
         for chunk in r.iter_content(chunk_size=1024):
@@ -55,14 +59,14 @@ def download_file(url,download_dir):
     log.info('file download finished.')
     return download_path
 
-def prepare_job_fromURL(jobguid,input_url):
+def prepare_job_fromURL(jobguid,ctx):
     workdir = 'workdirs/{}'.format(jobguid)
 
-    if not input_url:
+    if not ctx['inputURL']:
         log.warning('No input archive specified, skipping download')
         return
 
-    filepath = download_file(input_url,workdir)
+    filepath = download_file(ctx['inputURL'], ctx.get('inputAuth',None), workdir)
     log.info('downloaded done (at: %s)',filepath)
 
     with zipfile.ZipFile(filepath)as f:
@@ -74,7 +78,7 @@ def setupFromURL(ctx):
     log.info('setting up for context %s',ctx)
 
     prepare_workdir(jobguid)
-    prepare_job_fromURL(jobguid,ctx['inputURL'])
+    prepare_job_fromURL(jobguid,ctx)
 
 
 def prepare_workdir(jobguid):
