@@ -2,6 +2,7 @@ import zipfile
 import os
 import shutil
 import importlib
+import yaml
 import logging
 import requests
 import glob2
@@ -38,13 +39,20 @@ def generic_upload_results(resultdir, upload_spec):
 def download_file(url,download_dir):
     local_filename = url.split('/')[-1]
     # NOTE the stream=True parameter
-    r = requests.get(url, stream=True)
+
+    headers = {'Authorization': 'Bearer {}'.format(os.environ['WFLOW_DOWNLOAD_TOKEN'])}
+
+    log.info('start file download from  %s', url)
+
+    r = requests.get(url, stream=True, headers = headers, verify = yaml.load(os.environ['WFLOW_DOWNLOAD_VERIFY_SSL']))
     download_path = '{}/{}'.format(download_dir,local_filename)
     with open(download_path, 'wb') as f:
         for chunk in r.iter_content(chunk_size=1024):
             if chunk: # filter out keep-alive new chunks
                 f.write(chunk)
                 f.flush()
+
+    log.info('file download finished.')
     return download_path
 
 def prepare_job_fromURL(jobguid,input_url):
