@@ -167,8 +167,10 @@ def delete_all_but_log(directory, cutoff_size_MB = 50):
         for fl in files:
             fullpath = '/'.join([parent,fl])
             islog = (fl.endswith('.log') or fl.endswith('.txt'))
-            size_MB = os.stat(fullpath).st_size/bytes_per_megabyte
+            if not (os.path.exists(fullpath) and os.path.isfile(fullpath) and not os.path.islink(fullpath)):
+                continue
             if islog:
+                size_MB = os.stat(fullpath).st_size/bytes_per_megabyte
                 if size_MB < cutoff_size_MB:
                     continue
                 log.warning('size of log-like file %s is too large (%s MB), will be deleted',fullpath,size_MB)
