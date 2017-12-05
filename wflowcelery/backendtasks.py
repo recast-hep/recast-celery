@@ -59,8 +59,9 @@ def download_file(url,auth, download_dir):
     log.info('file download finished.')
     return download_path
 
-def prepare_job_fromURL(jobguid,ctx):
-    workdir = 'workdirs/{}'.format(jobguid)
+def prepare_job_fromURL(ctx):
+    workdir = ctx['workdir']
+    log.info('preparing workdir %s', workdir)
 
     if not ctx['inputURL']:
         log.warning('No input archive specified, skipping download')
@@ -77,17 +78,15 @@ def setupFromURL(ctx):
 
     log.info('setting up for context %s',ctx)
 
-    prepare_workdir(jobguid)
-    prepare_job_fromURL(jobguid,ctx)
+    prepare_workdir(ctx['workdir'])
+    prepare_job_fromURL(ctx)
 
 
-def prepare_workdir(jobguid):
-    workdir = 'workdirs/{}'.format(jobguid)
+def prepare_workdir(workdir):
     os.makedirs(workdir)
     log.info('prepared workdir %s',workdir)
 
-def isolate_results(jobguid,resultlist):
-    workdir = 'workdirs/{}'.format(jobguid)
+def isolate_results(workdir,resultlist):
     resultdir = '{}/results'.format(workdir)
 
     if(os.path.exists(resultdir)):
@@ -131,7 +130,7 @@ def generic_onsuccess(ctx):
     jobguid = ctx['jobguid']
 
     log.info('success for job %s, gathering results... ',jobguid)
-    resultdir = isolate_results(jobguid,getresultlist(ctx))
+    resultdir = isolate_results(ctx['workdir'],getresultlist(ctx))
 
     upload_spec = ctx['shipout_spec']
     log.info('uploading results to {}:{}'.format(upload_spec['host'],upload_spec['location']))
@@ -145,7 +144,7 @@ def dummy_onsuccess(ctx):
 
     jobguid       = ctx['jobguid']
 
-    resultdir = isolate_results(jobguid,getresultlist(ctx))
+    resultdir = isolate_results(ctx['workdir'],getresultlist(ctx))
 
     log.info('would be uploading results here..')
 
@@ -177,7 +176,7 @@ def delete_all_but_log(directory, cutoff_size_MB = 50):
             os.remove(fullpath)
 
 def cleanup(ctx):
-    workdir = 'workdirs/{}'.format(ctx['jobguid'])
+    workdir = ctx['workdir']
     log.info('cleaning up workdir: %s',workdir)
 
     quarantine_base = os.environ.get('WFLOW_QUARANTINE_DIR','/tmp/wflow_quarantine')
@@ -197,6 +196,8 @@ def cleanup(ctx):
 
 def run_analysis_standalone(setupfunc,onsuccess,teardownfunc,ctx,redislogging = True):
     jobguid = ctx['jobguid']
+    ctx['workdir'] = '/'.join([jobguid[i:i+2] for i in range(0,8,2)]) + jobguid[8:]
+
     try:
         if redislogging:
             logger, handler = setupLogging(jobguid)
