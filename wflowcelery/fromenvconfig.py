@@ -12,7 +12,7 @@ worker_prefetch_multiplier = 1
 
 
 
-task_serializer = 'pickle'
+task_serializer = 'json'
 accept_content = ['json']
 
 broker_url = 'redis://{}:{}/{}'.format(
