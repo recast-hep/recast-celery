@@ -11,8 +11,9 @@ task_acks_late = True
 worker_prefetch_multiplier = 1
 
 
+
 task_serializer = 'pickle'
-accept_content = ['json','pickle']
+accept_content = ['json']
 
 broker_url = 'redis://{}:{}/{}'.format(
 	redis_host,

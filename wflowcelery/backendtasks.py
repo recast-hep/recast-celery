@@ -196,7 +196,7 @@ def cleanup(ctx):
 
 def run_analysis_standalone(setupfunc,onsuccess,teardownfunc,ctx,redislogging = True):
     jobguid = ctx['jobguid']
-    ctx['workdir'] = '/'.join([jobguid[i:i+2] for i in range(0,8,2)]) + jobguid[8:]
+    ctx['workdir'] = 'workdirs/{}'.format('/'.join([jobguid[i:i+2] for i in range(0,8,2)]) + jobguid[8:])
 
     try:
         if redislogging:
@@ -229,4 +229,4 @@ def run_analysis_standalone(setupfunc,onsuccess,teardownfunc,ctx,redislogging = 
 
 @shared_task
 def run_analysis(setupfunc,onsuccess,teardownfunc,ctx):
-    run_analysis_standalone(setupfunc,onsuccess,teardownfunc,ctx)
+    run_analysis_standalone(globals()[setupfunc],globals()[onsuccess],globals()[teardownfunc],ctx)
