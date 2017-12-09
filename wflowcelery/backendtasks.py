@@ -3,6 +3,7 @@ import os
 import shutil
 import importlib
 import yaml
+import json
 import logging
 import requests
 import glob2
@@ -74,10 +75,7 @@ def prepare_job_fromURL(ctx):
         f.extractall('{}/inputs'.format(workdir))
 
 def setupFromURL(ctx):
-    jobguid = ctx['jobguid']
-
     log.info('setting up for context %s',ctx)
-
     prepare_workdir(ctx['workdir'])
     prepare_job_fromURL(ctx)
 
@@ -141,13 +139,9 @@ def generic_onsuccess(ctx):
 
 def dummy_onsuccess(ctx):
     log.info('success!')
-
-    jobguid       = ctx['jobguid']
-
     resultdir = isolate_results(ctx['workdir'],getresultlist(ctx))
 
     log.info('would be uploading results here..')
-
     for parent,dirs,files in os.walk(resultdir):
         for f in files:
             log.info('would be uploading this file %s','/'.join([parent,f]))
@@ -194,14 +188,22 @@ def cleanup(ctx):
         raise RuntimeError('Error in cleanup, ')
     assert not os.path.isdir(workdir)
 
-def run_analysis_standalone(setupfunc,onsuccess,teardownfunc,ctx,redislogging = True):
-    jobguid = ctx['jobguid']
-    ctx['workdir'] = 'workdirs/{}'.format('/'.join([jobguid[i:i+2] for i in range(0,8,2)]) + jobguid[8:])
-
+def run_analysis_standalone(setupfunc,onsuccess,teardownfunc,jobguid,redislogging = True):
     try:
         if redislogging:
             logger, handler = setupLogging(jobguid)
         log.info('running analysis on worker: %s %s',socket.gethostname(),os.environ.get('WFLOW_DOCKERHOST',''))
+
+        wflow_server = os.environ.get('WFLOW_SERVER')
+        log.info('acquiring wflow context from %s', wflow_server)
+
+        ctx = requests.get('{}/workflow_config'.format(wflow_server),
+            data = json.dumps({'workflow_ids': [jobguid]}),
+            headers = {'Content-Type': 'application/json'}
+        ).json()['configs'][0]
+
+        jobguid = ctx['jobguid']
+        ctx['workdir'] = 'workdirs/{}'.format('/'.join([jobguid[i:i+2] for i in range(0,8,2)]) + jobguid[8:])
 
         setupfunc(ctx)
         try:
@@ -228,5 +230,5 @@ def run_analysis_standalone(setupfunc,onsuccess,teardownfunc,ctx,redislogging = 
             logger.removeHandler(handler)
 
 @shared_task
-def run_analysis(setupfunc,onsuccess,teardownfunc,ctx):
-    run_analysis_standalone(globals()[setupfunc],globals()[onsuccess],globals()[teardownfunc],ctx)
+def run_analysis(setupfunc,onsuccess,teardownfunc, jobguid):
+    run_analysis_standalone(globals()[setupfunc],globals()[onsuccess],globals()[teardownfunc],jobguid)
