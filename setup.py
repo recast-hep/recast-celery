@@ -12,5 +12,9 @@ setup(
     'redis',
     'requests',
     'glob2'
-  ]
-)
+  ],
+  entry_points = {
+      'console_scripts': [
+          'wflow-process=wflowcelery.process:main',
+      ],
+  },)

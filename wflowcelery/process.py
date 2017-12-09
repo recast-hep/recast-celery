@@ -1,10 +1,23 @@
 import sys
 import logging
+import argparse
+from wflowcelery.backendtasks import *
 
-from wflowcelery.backendtasks import run_analysis_standalone
+def main():
+    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser.add_argument('setupfunc', metavar='setupfunc', help='setup function')
+    parser.add_argument('successfunc', metavar='successfunc', help='sucess exit function')
+    parser.add_argument('teardownfunc', metavar='teardownfunc', help='exit/cleanup function (always called)')
+    parser.add_argument('wflowid', metavar='wflowid', help='workflow id')
+    args = parser.parse_args()
 
-if __name__ == '__main__':
+
+
     log = logging.getLogger('wflow_process')
     logging.basicConfig(level = logging.INFO)
     log.info('processing %s', sys.argv[1:])
-    run_analysis_standalone(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
+    run_analysis_standalone(globals()[args.setupfunc],
+                            globals()[args.successfunc],
+                            globals()[args.teardownfunc],
+                            args.wflowid)
+    log.info('done processing')
