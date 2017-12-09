@@ -11,16 +11,10 @@ import socket
 
 from .messaging import setupLogging
 from celery import shared_task
-from fabric.api import env
-from fabric.operations import run, put
-from fabric.tasks import execute
 
 log = logging.getLogger('WFLOWSERVICELOG')
 
-env.use_ssh_config = True
-env.disable_known_hosts = True if 'WFLOW_UPLOAD_DISABLE_KNOWN_HOST' in os.environ else False
-env.key_filename = os.environ.get('WFLOW_UPLOAD_IDENTITY_FILE',None)
-
+import paramiko
 def generic_upload_results(resultdir, upload_spec):
     #make sure the directory for this point is present
 
@@ -29,12 +23,29 @@ def generic_upload_results(resultdir, upload_spec):
     port = upload_spec['port']
     remotelocation = upload_spec['location']
 
-    def fabric_command():
-        run('(test -d {remotelocation} && rm -rf {remotelocation}) || echo "not present yet" '.format(remotelocation = remotelocation))
-        run('mkdir -p {remotelocation}'.format(remotelocation = remotelocation))
-        put('{}/*'.format(resultdir),remotelocation)
 
-    execute(fabric_command,hosts = '{user}@{host}:{port}'.format(user = user, host = host, port = port))
+    # from fabric.api import env
+    # from fabric.operations import run, put
+    # from fabric.tasks import execute
+    # env.use_ssh_config = True
+    # env.disable_known_hosts = True if 'WFLOW_UPLOAD_DISABLE_KNOWN_HOST' in os.environ else False
+    # env.key_filename = os.environ.get('WFLOW_UPLOAD_IDENTITY_FILE',None)
+
+    # def fabric_command():
+    #     run('(test -d {remotelocation} && rm -rf {remotelocation}) || echo "not present yet" '.format(remotelocation = remotelocation))
+    #     run('mkdir -p {remotelocation}'.format(remotelocation = remotelocation))
+    #     put('{}/*'.format(resultdir),remotelocation)
+    #
+    # execute(fabric_command,hosts = '{user}@{host}:{port}'.format(user = user, host = host, port = port))
+
+    client = paramiko.SSHClient()
+    policy = paramiko.AutoAddPolicy()
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    client.load_system_host_keys()
+    client.connect(host, port, username)
+    client.exec_command('(test -d {remotelocation} && rm -rf {remotelocation}) || echo "not present yet" '.format(remotelocation = remotelocation))
+    client.exec_command('mkdir -p {remotelocation}'.format(remotelocation = remotelocation))
+    sftp.put('{}/*'.format(resultdir),remotelocation)
 
 
 def download_file(url,auth, download_dir):
