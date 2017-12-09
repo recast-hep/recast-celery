@@ -145,7 +145,6 @@ def dummy_onsuccess(ctx):
     for parent,dirs,files in os.walk(resultdir):
         for f in files:
             log.info('would be uploading this file %s','/'.join([parent,f]))
-
     log.info('done with uploading results')
 
 def delete_all_but_log(directory, cutoff_size_MB = 50):
