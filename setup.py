@@ -11,6 +11,7 @@ setup(
     'Celery',
     'redis',
     'requests',
+    'scp',
     'glob2'
   ],
   entry_points = {

@@ -15,6 +15,8 @@ from celery import shared_task
 log = logging.getLogger('WFLOWSERVICELOG')
 
 import paramiko
+from scp import SCPClient
+
 def generic_upload_results(resultdir, upload_spec):
     #make sure the directory for this point is present
 
@@ -45,9 +47,9 @@ def generic_upload_results(resultdir, upload_spec):
     client.connect(host, int(port), user)
     client.exec_command('(test -d {remotelocation} && rm -rf {remotelocation}) || echo "not present yet" '.format(remotelocation = remotelocation))
     client.exec_command('mkdir -p {remotelocation}'.format(remotelocation = remotelocation))
-    sftp = client.open_sftp()
-    sftp.put('{}/*'.format(resultdir),remotelocation)
-
+    scp = SCPClient(client.get_transport())
+    scp.put(resultdir, recursive=True, remote_path=remotelocation)
+    scp.close()
 
 def download_file(url,auth, download_dir):
     local_filename = url.split('/')[-1]
