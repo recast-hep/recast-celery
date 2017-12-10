@@ -42,7 +42,7 @@ def generic_upload_results(resultdir, upload_spec):
     policy = paramiko.AutoAddPolicy()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     client.load_system_host_keys()
-    client.connect(host, port, username)
+    client.connect(host, port, user)
     client.exec_command('(test -d {remotelocation} && rm -rf {remotelocation}) || echo "not present yet" '.format(remotelocation = remotelocation))
     client.exec_command('mkdir -p {remotelocation}'.format(remotelocation = remotelocation))
     sftp.put('{}/*'.format(resultdir),remotelocation)
