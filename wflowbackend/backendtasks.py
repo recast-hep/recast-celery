@@ -183,7 +183,10 @@ def cleanup(ctx):
         raise RuntimeError('Error in cleanup, ')
     assert not os.path.isdir(workdir)
 
-def run_analysis_standalone(setupfunc,onsuccess,teardownfunc,jobguid,redislogging = True):
+from contextlib import contextmanager
+
+@contextmanager
+def wflow_context(setupfunc,onsuccess,teardownfunc,jobguid,redislogging = True):
     try:
         if redislogging:
             logger, handler = setupLogging(jobguid)
@@ -201,17 +204,7 @@ def run_analysis_standalone(setupfunc,onsuccess,teardownfunc,jobguid,redisloggin
         ctx['workdir'] = 'workdirs/{}'.format('/'.join([jobguid[i:i+2] for i in range(0,8,2)]) + jobguid[8:])
 
         setupfunc(ctx)
-        try:
-            pluginmodule,entrypoint = ctx['entry_point'].split(':')
-            log.info('setting up entry point %s',ctx['entry_point'])
-            m = importlib.import_module(pluginmodule)
-            entry = getattr(m,entrypoint)
-        except AttributeError:
-            log.error('could not get entrypoint: %s',ctx['entry_point'])
-            raise
-
-        log.info('and off we go with job %s!',jobguid)
-        entry(ctx)
+        yield ctx
         log.info('back from entry point run onsuccess')
         onsuccess(ctx)
     except:
