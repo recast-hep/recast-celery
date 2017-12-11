@@ -26,9 +26,6 @@ def main():
     parser.add_argument('wflowid', metavar='wflowid', help='workflow id')
     args = parser.parse_args()
 
-
-
-
     log = logging.getLogger('wflow_process')
     logging.basicConfig(level = logging.INFO)
     log.info('processing %s', sys.argv[1:])
