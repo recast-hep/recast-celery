@@ -16,5 +16,6 @@ setup(
   entry_points = {
       'console_scripts': [
           'wflow-process=wflowbackend.process:main',
+          'wflow-process-server=wflowbackend.process_server:main',
       ],
   },)
