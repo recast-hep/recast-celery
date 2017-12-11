@@ -1,5 +1,4 @@
 import json
-import click
 import argparse
 import logging
 from flask import Flask, request, jsonify

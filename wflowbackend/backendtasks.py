@@ -185,24 +185,28 @@ def cleanup(ctx):
 
 from contextlib import contextmanager
 
+def acquire_context(jobguid):
+    log.info('running analysis on worker: %s %s',socket.gethostname(),os.environ.get('WFLOW_DOCKERHOST',''))
+
+    wflow_server = os.environ.get('WFLOW_SERVER')
+    log.info('acquiring wflow context from %s', wflow_server)
+
+    ctx = requests.get('{}/workflow_config'.format(wflow_server),
+        data = json.dumps({'workflow_ids': [jobguid]}),
+        headers = {'Content-Type': 'application/json'}
+    ).json()['configs'][0]
+
+    jobguid = ctx['jobguid']
+    ctx['workdir'] = 'workdirs/{}'.format('/'.join([jobguid[i:i+2] for i in range(0,8,2)]) + jobguid[8:])
+    return ctx
+
 @contextmanager
 def wflow_context(setupfunc,onsuccess,teardownfunc,jobguid,redislogging = True):
     try:
-        if redislogging:
-            logger, handler = setupLogging(jobguid)
+        setupLogging(jobguid, add_redis = redislogging)
         log.info('running analysis on worker: %s %s',socket.gethostname(),os.environ.get('WFLOW_DOCKERHOST',''))
 
-        wflow_server = os.environ.get('WFLOW_SERVER')
-        log.info('acquiring wflow context from %s', wflow_server)
-
-        ctx = requests.get('{}/workflow_config'.format(wflow_server),
-            data = json.dumps({'workflow_ids': [jobguid]}),
-            headers = {'Content-Type': 'application/json'}
-        ).json()['configs'][0]
-
-        jobguid = ctx['jobguid']
-        ctx['workdir'] = 'workdirs/{}'.format('/'.join([jobguid[i:i+2] for i in range(0,8,2)]) + jobguid[8:])
-
+        ctx = acquire_context(jobguid)
         setupfunc(ctx)
         yield ctx
         log.info('back from entry point run onsuccess')
@@ -214,5 +218,3 @@ def wflow_context(setupfunc,onsuccess,teardownfunc,jobguid,redislogging = True):
     finally:
         log.info('''it's a wrap for job %s! cleaning up.''',jobguid)
         teardownfunc(ctx)
-        if redislogging:
-            logger.removeHandler(handler)

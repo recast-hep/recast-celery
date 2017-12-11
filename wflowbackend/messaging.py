@@ -28,11 +28,11 @@ class RedisHandler(logging.StreamHandler):
     def emit(self, record):
         emit(self.jobguid, 'wflow_log', {'msg': self.format(record)}, redis_client = self.red)
 
-def setupLogging(jobguid):
+def setupLogging(jobguid, add_redis = True):
     log = logging.getLogger('WFLOWSERVICELOG')
     log.setLevel(logging.INFO)
 
-    redishandler = RedisHandler(jobguid)
-    log.addHandler(redishandler)
-
-    return log,redishandler
+    if redis:
+        redishandler = RedisHandler(jobguid)
+        log.addHandler(redishandler)
+    return log
