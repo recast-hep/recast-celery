@@ -1,7 +1,7 @@
 import sys
 import logging
 import argparse
-from wflowcelery.backendtasks import *
+from wflowbackend.backendtasks import *
 
 def main():
     parser = argparse.ArgumentParser(description='Process some integers.')

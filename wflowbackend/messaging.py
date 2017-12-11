@@ -7,10 +7,9 @@ import os
 log = logging.getLogger(__name__)
 
 def get_redis():
-    log.info('getting celery from %s',os.environ.get('WFLOW_CELERY_REDIS_HOST','localhost'))
-    return redis.StrictRedis(host = os.environ.get('WFLOW_CELERY_REDIS_HOST','localhost'),
-                               db = os.environ.get('WFLOW_CELERY_REDIS_DB',0),
-                             port = os.environ.get('WFLOW_CELERY_REDIS_PORT',6379))
+    redis_url = os.environ['WFLOW_BACKEND_REDIS_URL']
+    log.info('getting celery from %s',redis_url)
+    return redis.StrictRedis.from_url(redis_url)
 
 def emit(jobguid,msg_type,msg_data,redis_client = None):
     redis_client = redis_client or get_redis()
