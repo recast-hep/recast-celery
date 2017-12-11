@@ -1,6 +1,7 @@
 import sys
 import logging
 import argparse
+from wflowbackend.backendtasks import run_analysis_standalone
 from wflowbackend.backendtasks import *
 
 def main():

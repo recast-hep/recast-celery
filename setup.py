@@ -7,8 +7,7 @@ setup(
   include_package_data = True,
   install_requires = [
     'pyyaml',
-    'fabric',
-    'Celery',
+    'paramiko',
     'redis',
     'requests',
     'scp',
