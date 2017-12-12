@@ -10,7 +10,6 @@ import glob2
 import socket
 import paramiko
 from scp import SCPClient
-from .messaging import setupLogging
 
 log = logging.getLogger('WFLOWSERVICELOG')
 
