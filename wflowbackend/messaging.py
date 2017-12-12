@@ -31,8 +31,12 @@ class RedisHandler(logging.StreamHandler):
 def setupLogging(jobguid, add_redis = True):
     log = logging.getLogger('WFLOWSERVICELOG')
     log.setLevel(logging.INFO)
-
-    if redis:
+    if add_redis:
+        if any(type(h)==RedisHandler for h in log.handlers):
+            handler = [h for h in log.handlers if type(h)==RedisHandler][0]
+            if not handler.jobguid == jobguid:
+                raise RuntimeError('logging setup multiple times, but jobguid different. Now what?')
+            return log
         redishandler = RedisHandler(jobguid)
         log.addHandler(redishandler)
     return log

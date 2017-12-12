@@ -201,20 +201,24 @@ def acquire_context(jobguid):
     return ctx
 
 @contextmanager
-def wflow_context(setupfunc,onsuccess,teardownfunc,jobguid,redislogging = True):
+def wflow_context(setupfunc,onsuccess,teardownfunc,ctx):
+    '''
+    param setupfunc:
+    param onsuccess:
+    param teardownfunc:
+    param jobguid:
+    param redislogging:
+    '''
+    jobguid = ctx['jobguid']
     try:
-        setupLogging(jobguid, add_redis = redislogging)
         log.info('running analysis on worker: %s %s',socket.gethostname(),os.environ.get('WFLOW_DOCKERHOST',''))
-
-        ctx = acquire_context(jobguid)
-        setupfunc(ctx)
-        yield ctx
+        globals()[setupfunc](ctx)
+        yield
         log.info('back from entry point run onsuccess')
-        onsuccess(ctx)
+        globals()[onsuccess](ctx)
     except:
         log.exception('something went wrong :(!')
-        #re-raise exception
-        raise
+        raise #re-raise exception
     finally:
         log.info('''it's a wrap for job %s! cleaning up.''',jobguid)
-        teardownfunc(ctx)
+        globals()[teardownfunc](ctx)
