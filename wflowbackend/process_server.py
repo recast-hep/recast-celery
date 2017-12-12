@@ -2,66 +2,55 @@ import json
 import argparse
 import logging
 import os
-
 import wflowbackend.backendtasks as backendtasks
 import wflowbackend.messaging as messaging
 from flask import Flask, request, jsonify
 log = logging.getLogger('process_server')
 
+wflowlog = logging.getLogger('WFLOWSERVICELOG')
+
 app = Flask('process_server')
-app.debug = True
 
 def get_context():
     return json.load(open(app.config['context_file']))
+
+
+def get_status():
+    statusfile = app.config['status_file']
+    try:
+        with open(statusfile) as f:
+            log.info('reading status')
+            return jsonify(json.load(f))
+    except IOError:
+        with open(statusfile,'w') as f:
+            log.info('initial setup of statusfile %s', statusfile)
+            data = {'success': False, 'ready': False}
+            json.dump(data, f)
+            return jsonify(data)
+
+def set_status(ready = None, success = None):
+    status_data = get_status()
+
+    if ready: status_data['ready'] = ready
+    if success: status_data['success'] = success
+
+    statusfile = app.config['status_file']
+    with open(statusfile,'w') as f:
+        json.dump(status_data, f)
+        return jsonify({'set_status': True})
 
 @app.route('/context')
 def context():
     return jsonify(get_context())
 
-@app.route('/finalize')
-def finalize():
-    log.info('finalizing')
-    ctx = get_context()
-    teardownfunc = getattr(backendtasks,app.config['successfunc'])
-    teardownfunc(ctx)
-    log.info('successfunc done')
-    return jsonify({'status': 'ok'})
-
-@app.route('/teardown')
-def teardown():
-    log.info('tearing down')
-    ctx = get_context()
-    teardownfunc = getattr(backendtasks,app.config['teardownfunc'])
-    teardownfunc(ctx)
-    log.info('teardown done')
-    return jsonify({'status': 'ok'})
-
-@app.route('/status', methods = ['GET','POST'])
-def status():
-    statusfile = app.config['status_file']
-    if request.method == 'POST':
-        status_data = request.json
-        status_data = {'success': status_data['success'], 'ready': status_data['ready']}
-        log.info('status is being set to %s (writting to file %s)', status_data, statusfile)
-        with open(statusfile,'w') as f:
-            json.dump(status_data, f)
-            return jsonify({'set_status': True})
-    else:
-        try:
-            with open(statusfile) as f:
-                log.info('reading status')
-                return jsonify(json.load(f))
-        except IOError:
-            with open(statusfile,'w') as f:
-                log.info('initial setup of statusfile %s', statusfile)
-                data = {'success': False, 'ready': False}
-                json.dump(data, f)
-                return jsonify(data)
-
-def init():
+def setup_once():
     log.info('setting up')
 
     ctx = backendtasks.acquire_context(app.config['wflowid'])
+
+    if os.path.exists(ctx['workdir']): #if we're setup, ignore
+        wflowlog.info('workdir exists interactive session possibly reactivated -- not setting up')
+        return
     setupfunc = getattr(backendtasks,app.config['setupfunc'])
     setupfunc(ctx)
 
@@ -77,6 +66,30 @@ def init():
         json.dump(ctx,f)
 
     log.info('setup done')
+
+@app.route('/finalize')
+def finalize():
+    try:
+        log.info('finalizing')
+        ctx = get_context()
+        successfunc = getattr(backendtasks,app.config['successfunc'])
+        successfunc(ctx)
+        log.info('successfunc done')
+    except:
+        wflowlog.exception('something went wrong :(!')
+    finally:
+        teardownfunc = getattr(backendtasks,app.config['teardownfunc'])
+        teardownfunc(ctx)
+    return jsonify({'status': 'ok'})
+
+@app.route('/status', methods = ['GET','POST'])
+def status():
+    if request.method == 'POST':
+        set_status(request.json.get('success'), request.json.get('ready'))
+        return jsonify({'set_status': True})
+    else:
+        return jsonify(get_status())
+
 
 def main():
     logging.basicConfig(level = logging.INFO)
@@ -96,5 +109,8 @@ def main():
 
     messaging.setupLogging(args.wflowid, add_redis = args.stream_logs)
 
-    init()
+    wflowlog.info('setting up interactive session.')
+    setup_once()
+    wflowlog.info('interactive workflow started.')
+
     app.run(host='0.0.0.0', port=5000)

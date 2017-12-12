@@ -173,6 +173,7 @@ def cleanup(ctx):
     try:
         if os.path.isdir(workdir):
             delete_all_but_log(workdir)
+            shutil.rmtree(rescuedir)
             shutil.move(workdir,rescuedir)
     except:
         #this is again pretty harsh, but we really want to make sure the workdir is gone
@@ -185,7 +186,7 @@ def cleanup(ctx):
 from contextlib import contextmanager
 
 def acquire_context(jobguid):
-    log.info('running analysis on worker: %s %s',socket.gethostname(),os.environ.get('WFLOW_DOCKERHOST',''))
+    log.info('running analysis on worker: %s',socket.gethostname())
 
     wflow_server = os.environ.get('WFLOW_SERVER')
     log.info('acquiring wflow context from %s', wflow_server)
