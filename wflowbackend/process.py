@@ -2,6 +2,7 @@ import sys
 import logging
 import argparse
 import json
+import importlib
 from wflowbackend.backendtasks import wflow_context, acquire_context
 from wflowbackend.messaging import setupLogging
 
