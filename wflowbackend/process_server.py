@@ -20,13 +20,13 @@ def get_status():
     try:
         with open(statusfile) as f:
             log.info('reading status')
-            return jsonify(json.load(f))
+            return json.load(f)
     except IOError:
         with open(statusfile,'w') as f:
             log.info('initial setup of statusfile %s', statusfile)
             data = {'success': False, 'ready': False}
             json.dump(data, f)
-            return jsonify(data)
+            return data
 
 def set_status(ready = None, success = None):
     status_data = get_status()
