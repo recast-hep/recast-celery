@@ -82,10 +82,6 @@ def prepare_workdir(workdir):
 def isolate_results(workdir,resultlist):
     resultdir = '{}/results'.format(workdir)
 
-    if(os.path.exists(resultdir)):
-        log.warning('resutl directory %s exists?!?',resultdir)
-        shutil.rmtree(resultdir)
-
     os.makedirs(resultdir)
 
     for result,resultpath in ((r,os.path.abspath('{}/{}'.format(workdir,r))) for r in resultlist):
