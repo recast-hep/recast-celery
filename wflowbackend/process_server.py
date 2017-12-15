@@ -2,6 +2,7 @@ import json
 import argparse
 import logging
 import os
+import importlib
 import wflowbackend.backendtasks as backendtasks
 import wflowbackend.messaging as messaging
 from flask import Flask, request, jsonify
@@ -65,6 +66,18 @@ def setup_once():
     with open(app.config['context_file'],'w') as f:
         json.dump(ctx,f)
 
+    try:
+        pluginmodule,entrypoint = ctx['entry_point'].split(':')
+        log.info('setting up entry point %s',ctx['entry_point'])
+        m = importlib.import_module(pluginmodule)
+        entry = getattr(m,entrypoint)
+    except AttributeError:
+        log.error('could not get entrypoint: %s',ctx['entry_point'])
+        raise
+    entry(ctx)
+
+
+
     log.info('setup done')
 
 @app.route('/finalize')
@@ -112,5 +125,6 @@ def main():
     wflowlog.info('setting up interactive session.')
     setup_once()
     wflowlog.info('interactive workflow started.')
+
 
     app.run(host='0.0.0.0', port=5000)

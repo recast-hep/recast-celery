@@ -13,13 +13,15 @@ from scp import SCPClient
 
 log = logging.getLogger('WFLOWSERVICELOG')
 
-def generic_upload_results(resultdir, upload_spec):
+def generic_upload_results(resultdir, shipout_spec):
     #make sure the directory for this point is present
 
-    user = upload_spec['user']
-    host = upload_spec['host']
-    port = upload_spec['port']
-    remotelocation = upload_spec['location']
+    log.info('uploading results to {}:{}'.format(shipout_spec['host'],shipout_spec['location']))
+
+    user           = shipout_spec['user']
+    host           = shipout_spec['host']
+    port           = shipout_spec['port']
+    remotelocation = shipout_spec['location']
 
     client = paramiko.SSHClient()
     policy = paramiko.AutoAddPolicy()
@@ -121,10 +123,8 @@ def generic_onsuccess(ctx):
     log.info('success for job %s, gathering results... ',jobguid)
     resultdir = isolate_results(ctx['workdir'],getresultlist(ctx))
 
-    upload_spec = ctx['shipout_spec']
-    log.info('uploading results to {}:{}'.format(upload_spec['host'],upload_spec['location']))
-
-    generic_upload_results(resultdir,upload_spec)
+    shipout_spec = ctx['shipout_spec']
+    generic_upload_results(resultdir,shipout_spec)
 
     log.info('done with uploading results')
 
@@ -169,7 +169,8 @@ def cleanup(ctx):
     try:
         if os.path.isdir(workdir):
             delete_all_but_log(workdir)
-            shutil.rmtree(rescuedir)
+            if os.path.isdir(rescuedir):
+                shutil.rmtree(rescuedir)
             shutil.move(workdir,rescuedir)
     except:
         #this is again pretty harsh, but we really want to make sure the workdir is gone
