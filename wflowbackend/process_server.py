@@ -82,9 +82,9 @@ def setup_once():
 
 @app.route('/finalize')
 def finalize():
+    ctx = get_context()
     try:
         log.info('finalizing')
-        ctx = get_context()
         successfunc = getattr(backendtasks,app.config['successfunc'])
         successfunc(ctx)
         log.info('successfunc done')
