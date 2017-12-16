@@ -47,6 +47,8 @@ def context():
 def setup_once():
 
     ctx = backendtasks.acquire_context(app.config['wflowid'])
+    app.config['context_file'] = os.path.join(ctx['workdir'],CONTEXTFILE)
+    app.config['status_file']  = os.path.join(ctx['workdir'],STATUSFILE)
 
     if os.path.exists(ctx['workdir']): #if we're setup, ignore
         wflowlog.info('workdir exists interactive session possibly reactivated -- not setting up')
@@ -60,8 +62,6 @@ def setup_once():
     CONTEXTFILE = '.wflow_context'
     STATUSFILE = '.wflow_status'
 
-    app.config['context_file'] = os.path.join(ctx['workdir'],CONTEXTFILE)
-    app.config['status_file'] = os.path.join(ctx['workdir'],STATUSFILE)
     log.info('declaring context and status files at %s %s',
              app.config['context_file'], app.config['status_file'])
 
