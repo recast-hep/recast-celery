@@ -45,13 +45,15 @@ def context():
     return jsonify(get_context())
 
 def setup_once():
-    log.info('setting up')
 
     ctx = backendtasks.acquire_context(app.config['wflowid'])
 
     if os.path.exists(ctx['workdir']): #if we're setup, ignore
         wflowlog.info('workdir exists interactive session possibly reactivated -- not setting up')
         return
+
+    wflowlog.info('setting up once')
+
     setupfunc = getattr(backendtasks,app.config['setupfunc'])
     setupfunc(ctx)
 
@@ -68,17 +70,15 @@ def setup_once():
 
     try:
         pluginmodule,entrypoint = ctx['entry_point'].split(':')
-        log.info('setting up entry point %s',ctx['entry_point'])
+        wflowlog.info('setting up entry point %s',ctx['entry_point'])
         m = importlib.import_module(pluginmodule)
         entry = getattr(m,entrypoint)
     except AttributeError:
-        log.error('could not get entrypoint: %s',ctx['entry_point'])
+        wflowlog.error('could not get entrypoint: %s',ctx['entry_point'])
         raise
     entry(ctx)
 
-
-
-    log.info('setup done')
+    log.info('one-time setup done')
 
 @app.route('/finalize')
 def finalize():
