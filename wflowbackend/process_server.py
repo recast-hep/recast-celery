@@ -40,6 +40,10 @@ def set_status(ready = None, success = None):
         json.dump(status_data, f)
         return jsonify({'set_status': True})
 
+@app.route('/readyz')
+def readyz():
+    return jsonify({})
+
 @app.route('/context')
 def context():
     return jsonify(get_context())
@@ -47,6 +51,10 @@ def context():
 def setup_once():
 
     ctx = backendtasks.acquire_context(app.config['wflowid'])
+    CONTEXTFILE = '.wflow_context'
+    STATUSFILE = '.wflow_status'
+    app.config['context_file'] = os.path.join(ctx['workdir'],CONTEXTFILE)
+    app.config['status_file'] = os.path.join(ctx['workdir'],STATUSFILE)
 
     if os.path.exists(ctx['workdir']): #if we're setup, ignore
         wflowlog.info('workdir exists interactive session possibly reactivated -- not setting up')
@@ -57,11 +65,6 @@ def setup_once():
     setupfunc = getattr(backendtasks,app.config['setupfunc'])
     setupfunc(ctx)
 
-    CONTEXTFILE = '.wflow_context'
-    STATUSFILE = '.wflow_status'
-
-    app.config['context_file'] = os.path.join(ctx['workdir'],CONTEXTFILE)
-    app.config['status_file'] = os.path.join(ctx['workdir'],STATUSFILE)
     log.info('declaring context and status files at %s %s',
              app.config['context_file'], app.config['status_file'])
 
