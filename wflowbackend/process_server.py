@@ -86,11 +86,15 @@ def setup_once():
 @app.route('/finalize')
 def finalize():
     ctx = get_context()
+    status_data = get_status()
     try:
-        log.info('finalizing')
-        successfunc = getattr(backendtasks,app.config['successfunc'])
-        successfunc(ctx)
-        log.info('successfunc done')
+        if status_data['success']:
+            log.info('status says, workflow is successful. handling it. ')
+            successfunc = getattr(backendtasks,app.config['successfunc'])
+            successfunc(ctx)
+            log.info('successfunc done')
+        else:
+            log.info('status says, workflow failed, just tearing down')
     except:
         wflowlog.exception('something went wrong :(!')
     finally:
