@@ -101,7 +101,7 @@ def finalize():
 @app.route('/status', methods = ['GET','POST'])
 def status():
     if request.method == 'POST':
-        set_status(request.json.get('success'), request.json.get('ready'))
+        set_status(request.json.get('ready'), request.json.get('success'))
         return jsonify({'set_status': True})
     else:
         return jsonify(get_status())
