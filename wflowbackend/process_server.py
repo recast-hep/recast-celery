@@ -32,8 +32,8 @@ def get_status():
 def set_status(ready = None, success = None):
     status_data = get_status()
 
-    if ready: status_data['ready'] = ready
-    if success: status_data['success'] = success
+    if ready is not None: status_data['ready'] = ready
+    if success is not None: status_data['success'] = success
 
     statusfile = app.config['status_file']
     with open(statusfile,'w') as f:
