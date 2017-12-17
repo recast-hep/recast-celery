@@ -89,12 +89,12 @@ def finalize():
     status_data = get_status()
     try:
         if status_data['success']:
-            log.info('status says, workflow is successful. handling it. ')
+            wflowlog.info('status says, workflow is successful. handling it. ')
             successfunc = getattr(backendtasks,app.config['successfunc'])
             successfunc(ctx)
-            log.info('successfunc done')
+            wflowlog.info('handled the great success :)')
         else:
-            log.info('status says, workflow failed, just tearing down')
+            wflowlog.info('status says, workflow failed, just tearing down')
     except:
         wflowlog.exception('something went wrong :(!')
     finally:
