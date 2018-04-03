@@ -10,7 +10,6 @@ log = logging.getLogger(__name__)
 
 def run_analysis_standalone(setupfunc,onsuccess,teardownfunc,ctx):
     with wflow_context(setupfunc, onsuccess, teardownfunc, ctx):
-        log = logging.getLogger('WFLOWSERVICELOG')
         try:
             pluginmodule,entrypoint = ctx['entry_point'].split(':')
             log.info('setting up entry point %s',ctx['entry_point'])

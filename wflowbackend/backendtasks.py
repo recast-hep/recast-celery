@@ -11,7 +11,7 @@ import socket
 import paramiko
 from scp import SCPClient
 
-log = logging.getLogger('WFLOWSERVICELOG')
+log = logging.getLogger(__name__)
 
 def generic_upload_results(resultdir, shipout_spec):
     #make sure the directory for this point is present

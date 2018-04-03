@@ -8,7 +8,7 @@ import wflowbackend.messaging as messaging
 from flask import Flask, request, jsonify
 log = logging.getLogger('process_server')
 
-wflowlog = logging.getLogger('WFLOWSERVICELOG')
+wflowlog = logging.getLogger(__name__)
 
 app = Flask('process_server')
 
