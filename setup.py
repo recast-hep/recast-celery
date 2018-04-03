@@ -8,7 +8,6 @@ setup(
   install_requires = [
     'pyyaml',
     'paramiko',
-    'redis',
     'requests',
     'scp',
     'glob2'

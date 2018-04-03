@@ -37,7 +37,7 @@ def generic_upload_results(resultdir, shipout_spec):
     cmd = 'mkdir -p {remotelocation}'.format(remotelocation = remotelocation)
     log.info('remake: [%s]', cmd)
     client.exec_command(cmd)
-    
+
     log.info('recursive put %s -> %s', resultdir, remotelocation)
     scp.put(resultdir, recursive=True, remote_path=remotelocation)
     scp.close()
@@ -109,7 +109,6 @@ def isolate_results(workdir,resultlist):
             shutil.move(thing,inresultpath)
     return resultdir
 
-
 def getresultlist(ctx):
     """
     result list can either be provided as module:attribute nullary function
@@ -123,7 +122,6 @@ def getresultlist(ctx):
         return resultlister()
     if 'resultlist' in ctx:
         return ctx['resultlist']
-
 
 def generic_onsuccess(ctx):
     jobguid = ctx['jobguid']
