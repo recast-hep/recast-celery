@@ -43,11 +43,12 @@ def generic_upload_results(resultdir, shipout_spec):
             log.info('recursive put %s -> %s', resultdir, remotelocation)
             scp.put(resultdir, recursive=True, remote_path=remotelocation)
             scp.close()
+            break
         except SCPException:
-            sleeptime = random.randint(10,20)
             log.info('shipout failed at try %s. retrying in %s seconds', n_tries, sleeptime)
-            time.sleep(sleeptime)
-            n_tries += 1
+        sleeptime = random.randint(10,20)
+        time.sleep(sleeptime)
+        n_tries += 1
 
 def download_file(url,auth, download_dir):
     local_filename = url.split('/')[-1]
