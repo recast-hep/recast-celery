@@ -30,14 +30,11 @@ def generic_upload_results(resultdir, shipout_spec):
     client.connect(host, int(port), user)
     scp = SCPClient(client.get_transport())
 
-    cmd = '(test -d {remotelocation} && rm -rf {remotelocation}) || echo "not present yet" '.format(remotelocation = remotelocation)
+    cmd = '(test -d {remotelocation} && rm -rf {remotelocation}) || echo "not present yet"; mkdir -p {remotelocation}'.format(
+        remotelocation = remotelocation
+    )
     log.info('cleanup if necessary: [%s]', cmd)
     client.exec_command(cmd)
-
-    cmd = 'mkdir -p {remotelocation}'.format(remotelocation = remotelocation)
-    log.info('remake: [%s]', cmd)
-    client.exec_command(cmd)
-
     log.info('recursive put %s -> %s', resultdir, remotelocation)
     scp.put(resultdir, recursive=True, remote_path=remotelocation)
     scp.close()
