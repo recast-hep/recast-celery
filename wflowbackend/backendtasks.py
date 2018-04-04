@@ -43,6 +43,7 @@ def generic_upload_results(resultdir, shipout_spec):
             log.info('recursive put %s -> %s', resultdir, remotelocation)
             scp.put(resultdir, recursive=True, remote_path=remotelocation)
             scp.close()
+            log.info('breaking')
             break
         except SCPException:
             log.info('shipout failed at try %s. retrying in %s seconds', n_tries, sleeptime)
