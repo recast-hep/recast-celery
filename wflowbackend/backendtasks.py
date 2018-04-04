@@ -12,6 +12,7 @@ import paramiko
 import time
 import random
 from scp import SCPClient, SCPException
+from paramiko.ssh_exception import SSHException
 
 log = logging.getLogger(__name__)
 
@@ -30,11 +31,11 @@ def generic_upload_results(resultdir, shipout_spec):
     client.set_missing_host_key_policy(policy)
     client.load_system_host_keys()
     client.connect(host, int(port), user)
-    scp = SCPClient(client.get_transport())
 
     n_tries = 0
     while n_tries < 10:
         try:
+            scp = SCPClient(client.get_transport())
             cmd = '(test -d {remotelocation} && rm -rf {remotelocation}) || true; mkdir -p {remotelocation}'.format(
                 remotelocation = remotelocation
             )
@@ -45,7 +46,7 @@ def generic_upload_results(resultdir, shipout_spec):
             scp.close()
             log.info('breaking')
             break
-        except SCPException:
+        except SCPException, SSHException:
             pass
         sleeptime = random.randint(10,20)
         log.info('shipout failed at try %s. retrying in %s seconds', n_tries, sleeptime)
