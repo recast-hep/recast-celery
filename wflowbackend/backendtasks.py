@@ -169,14 +169,15 @@ def cleanup(ctx):
     workdir = ctx['workdir']
     log.info('cleaning up workdir: %s',workdir)
 
-    quarantine_base = os.environ.get('WFLOW_QUARANTINE_DIR','/tmp/wflow_quarantine')
-    rescuedir = '{}/{}'.format(quarantine_base,ctx['jobguid'])
+    rescuedir = ctx['quarantine_dir']
     log.info('log files will be in %s',rescuedir)
     try:
         if os.path.isdir(workdir):
             delete_all_but_log(workdir)
             if os.path.isdir(rescuedir):
                 shutil.rmtree(rescuedir)
+            if not os.path.exists(rescuedir):
+                os.makedirs(os.path.dirname(rescuedir))
             shutil.move(workdir,rescuedir)
     except:
         #this is again pretty harsh, but we really want to make sure the workdir is gone
@@ -201,6 +202,9 @@ def acquire_context(jobguid):
 
     jobguid = ctx['jobguid']
     ctx['workdir'] = 'workdirs/{}'.format('/'.join([jobguid[i:i+2] for i in range(0,8,2)]) + jobguid[8:])
+
+    quarantine_base = os.environ.get('WFLOW_QUARANTINE_DIR','/tmp/wflow_quarantine')
+    ctx['quarantine_dir'] = os.path.join(quarantine_base,'/'.join([jobguid[i:i+2] for i in range(0,8,2)]) + jobguid[8:])
     return ctx
 
 @contextmanager
