@@ -46,7 +46,8 @@ def generic_upload_results(resultdir, shipout_spec):
             log.info('breaking')
             break
         except SCPException:
-            log.info('shipout failed at try %s. retrying in %s seconds', n_tries, sleeptime)
+            pass
+        log.info('shipout failed at try %s. retrying in %s seconds', n_tries, sleeptime)
         sleeptime = random.randint(10,20)
         time.sleep(sleeptime)
         n_tries += 1
