@@ -30,7 +30,7 @@ def generic_upload_results(resultdir, shipout_spec):
     client.connect(host, int(port), user)
     scp = SCPClient(client.get_transport())
 
-    cmd = '(test -d {remotelocation} && rm -rf {remotelocation}) || echo "not present yet"; mkdir -p {remotelocation}'.format(
+    cmd = '(test -d {remotelocation} && rm -rf {remotelocation}) || true; mkdir -p {remotelocation}'.format(
         remotelocation = remotelocation
     )
     log.info('cleanup if necessary: [%s]', cmd)
