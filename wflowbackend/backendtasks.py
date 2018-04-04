@@ -9,6 +9,8 @@ import requests
 import glob2
 import socket
 import paramiko
+import time
+import random
 from scp import SCPClient, SCPException
 
 log = logging.getLogger(__name__)
@@ -42,7 +44,9 @@ def generic_upload_results(resultdir, shipout_spec):
             scp.put(resultdir, recursive=True, remote_path=remotelocation)
             scp.close()
         except SCPException:
-            log.info('shipout failed at try %s. retrying', n_tries)
+            sleeptime = random.randint(10,20)
+            log.info('shipout failed at try %s. retrying in %s seconds', n_tries, sleeptime)
+            time.sleep(sleeptime)
             n_tries += 1
 
 def download_file(url,auth, download_dir):
