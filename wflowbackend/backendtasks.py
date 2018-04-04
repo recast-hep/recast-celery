@@ -9,7 +9,7 @@ import requests
 import glob2
 import socket
 import paramiko
-from scp import SCPClient
+from scp import SCPClient, SCPException
 
 log = logging.getLogger(__name__)
 
@@ -30,14 +30,20 @@ def generic_upload_results(resultdir, shipout_spec):
     client.connect(host, int(port), user)
     scp = SCPClient(client.get_transport())
 
-    cmd = '(test -d {remotelocation} && rm -rf {remotelocation}) || true; mkdir -p {remotelocation}'.format(
-        remotelocation = remotelocation
-    )
-    log.info('cleanup if necessary: [%s]', cmd)
-    client.exec_command(cmd)
-    log.info('recursive put %s -> %s', resultdir, remotelocation)
-    scp.put(resultdir, recursive=True, remote_path=remotelocation)
-    scp.close()
+    n_tries = 0
+    while n_tries < 10:
+        try:
+            cmd = '(test -d {remotelocation} && rm -rf {remotelocation}) || true; mkdir -p {remotelocation}'.format(
+                remotelocation = remotelocation
+            )
+            log.info('cleanup if necessary: [%s]', cmd)
+            client.exec_command(cmd)
+            log.info('recursive put %s -> %s', resultdir, remotelocation)
+            scp.put(resultdir, recursive=True, remote_path=remotelocation)
+            scp.close()
+        except SCPException:
+            log.info('shipout failed at try %s. retrying', n_tries)
+            n_tries += 1
 
 def download_file(url,auth, download_dir):
     local_filename = url.split('/')[-1]
